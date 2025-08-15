@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - YouTube Video Summarizer</title>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" as="style">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="error-container">
+            <div class="error-icon">⚠️</div>
+            <h1 class="error-title">Oops! Something went wrong</h1>
+            <p class="error-message">{{ error }}</p>
+            <a href="/" class="back-btn">Back to Home</a>
+        </div>
+    </div>
+
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+        <span class="theme-icon">🌙</span>
+    </button>
+    
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html> 

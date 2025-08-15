@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light"> <!-- Default theme -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summarized Notes</title>
+    <!-- Optimized combined stylesheet -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" as="style">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css" 
+          id="hljs-theme-dark" media="(prefers-color-scheme: dark)">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-light.min.css" 
+          id="hljs-theme-light" media="(prefers-color-scheme: light)">
+</head>
+<body>
+    <!-- Back Button -->
+    <a href="/" class="back-to-home-btn" aria-label="Go back to home">
+        <i class="fas fa-arrow-left"></i>
+        <span>New Summary</span>
+    </a>
+    
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <span class="theme-icon">🌙</span>
+    </button>
+    
+    <div class="container result-page-container"> <!-- Added class for specific page styling -->
+        <div class="content-wrapper">
+            <!-- Modern Header with Gradient -->
+            <div class="results-header">
+                <div class="header-content">
+                    <div class="results-icon">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <h1 class="results-title">
+                        <span class="gradient-text">Summary Results</span>
+                    </h1>
+                    <p class="results-subtitle">AI-powered insights from your video content</p>
+                    <div id="playlist-title-display" class="playlist-banner" style="display:none;"></div>
+                </div>
+            </div>
+            
+            <!-- Error Display with Modern Styling -->
+            <div id="error-display-main" class="modern-error-card" style="display:none;"></div>
+            
+            <!-- Results Container with Modern Layout -->
+            <div class="results-container">
+                <div id="results-area" class="results-grid">
+                    <!-- Dynamic content will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Modern Back Button -->
+            <div class="action-bar">
+                <a href="/" class="modern-back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Create New Summary</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Data passed from Flask, to be processed by result.js -->
+    <script id="result-data-script" type="application/json">
+        {{ result_data | tojson | safe if result_data else '{}' }}
+    </script>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
