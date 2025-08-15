@@ -1,7 +1,7 @@
 from app.models.video_model import VideoModel, VideoModelError
 import logging
 from typing import Dict, Optional, List, Any
-from app.utils.progress_tracker import ProgressTracker # For type hinting if passed
+from app.utils.progress_tracker import ProgressTracker 
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ class VideoController:
     def __init__(self):
         try:
             self.video_model = VideoModel()
-        except VideoModelError as e: # Catch specific error
+        except VideoModelError as e: 
             logger.error(f"Error initializing VideoModel: {str(e)}")
             raise VideoControllerError(f"Failed to initialize video services: {str(e)}")
         except Exception as e:
@@ -38,13 +38,13 @@ class VideoController:
         if custom_prompt is not None:
             if not isinstance(custom_prompt, str):
                 raise VideoControllerError("Custom prompt must be a string.")
-            if len(custom_prompt) > 2000: # Increased limit, adjust as needed
+            if len(custom_prompt) > 2000:
                 raise VideoControllerError("Custom prompt is too long (max 2000 characters).")
 
     def process_video(self, video_id: str, custom_prompt: Optional[str] = None, start_time: Optional[float] = None, end_time: Optional[float] = None) -> Dict[str, Any]:
         """Process a single video with optional timestamp filtering."""
         try:
-            # Use combined method for efficiency - fetches both transcript and info
+            
             transcript, video_info = self.video_model.fetch_transcript_with_info(video_id, start_time, end_time)
             
             title = video_info.get('title', f"Video {video_id}")
@@ -70,8 +70,8 @@ class VideoController:
         self, 
         url: str, 
         custom_prompt: Optional[str] = None,
-        task_id: Optional[str] = None, # For async progress tracking
-        progress_tracker_instance: Optional[ProgressTracker] = None, # For async progress tracking
+        task_id: Optional[str] = None, 
+        progress_tracker_instance: Optional[ProgressTracker] = None,
         start_time: Optional[float] = None,
         end_time: Optional[float] = None
     ) -> Dict[str, Any]:
@@ -92,12 +92,12 @@ class VideoController:
             video_id = self.video_model.extract_video_id(url)
             return self.process_video(video_id, custom_prompt, start_time, end_time)
         
-        except VideoControllerError as e: # Catch internal controller errors
+        except VideoControllerError as e:
             logger.error(f"Controller error processing URL '{url}': {str(e)}")
             if task_id and progress_tracker_instance:
                 progress_tracker_instance.mark_task_failed(task_id, str(e))
             return {"error": str(e), "videos": []}
-        except VideoModelError as e: # Catch errors from the model layer
+        except VideoModelError as e: 
             logger.error(f"Video model error processing URL '{url}': {str(e)}")
             if task_id and progress_tracker_instance:
                 progress_tracker_instance.mark_task_failed(task_id, str(e))
@@ -132,11 +132,11 @@ class VideoController:
             if task_id and progress_tracker_instance:
                 progress_tracker_instance.initialize_progress(task_id, total_items=len(video_ids), description=f"Processing playlist: {playlist_title} ({len(video_ids)} videos)")
 
-            # Parallel processing with ThreadPoolExecutor (optimized)
+            
             from concurrent.futures import ThreadPoolExecutor, as_completed
             import threading
             
-            max_workers = min(3, len(video_ids))  # Limit concurrent requests to avoid rate limiting
+            max_workers = min(3, len(video_ids))  
             
             def process_single_video(video_id, index):
                 try:
@@ -145,23 +145,21 @@ class VideoController:
                     logger.info(f"Successfully processed video {index+1}/{len(video_ids)}: {video_data.get('title', video_id)}")
                     return index, video_data
                 except Exception as e:
-                    # Simplified error handling - use fallback data
+                 
                     video_data = self._build_video_data(video_id, f"Video {video_id}", f"https://www.youtube.com/watch?v={video_id}", error=str(e))
                     logger.error(f"Failed to process video {index+1}/{len(video_ids)} ({video_id}): {str(e)}")
                     return index, video_data
             
-            # Initialize results array with placeholders
             playlist_results = [None] * len(video_ids)
             completed_count = 0
             
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                # Submit all tasks
+           
                 future_to_index = {
                     executor.submit(process_single_video, video_id, i): i 
                     for i, video_id in enumerate(video_ids)
                 }
                 
-                # Process completed tasks as they finish
                 for future in as_completed(future_to_index):
                     try:
                         index, video_data = future.result()
@@ -185,10 +183,10 @@ class VideoController:
                 "videos": playlist_results
             }
 
-        except VideoModelError as e: # Catch errors related to playlist processing (e.g., fetching IDs)
+        except VideoModelError as e: 
             logger.error(f"Error processing playlist '{url}': {str(e)}")
             if task_id and progress_tracker_instance:
-                progress_tracker_instance.mark_task_failed(task_id, str(e)) # Mark task failed if playlist fetch fails
+                progress_tracker_instance.mark_task_failed(task_id, str(e)) 
             return {"is_playlist": True, "playlist_title": playlist_title, "videos": [], "error": str(e)}
         except Exception as e:
             logger.error(f"Unexpected error processing playlist '{url}': {str(e)}")
