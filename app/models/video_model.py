@@ -43,15 +43,36 @@ class VideoModel:
             'ignoreerrors': True,
             'nocheckcertificate': True,
             'geo_bypass': True,
-            'socket_timeout': 30,
-            'retries': 5,
-            'fragment_retries': 5,
-            'extractor_retries': 3,
-            'sleep_interval': 1,
-            'max_sleep_interval': 5,
+            'socket_timeout': 60,  # Increased timeout
+            'retries': 3,  # Reduced retries to avoid triggering rate limits
+            'fragment_retries': 3,
+            'extractor_retries': 2,
+            'sleep_interval': 2,  # Increased sleep intervals
+            'max_sleep_interval': 10,
+            'sleep_interval_requests': 2,  # Add delay between requests
+            'cookiefile': 'cookies.txt',  # Use cookies for better auth
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
                 'Accept-Language': 'en-US,en;q=0.9',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Fetch-User': '?1',
+                'Cache-Control': 'max-age=0',
+            },
+            # Additional YouTube-specific options
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'web'],  # Use multiple clients
+                    'player_skip': ['configs'],
+                    'comment_sort': ['top'],
+                    'max_comments': ['0'],  # Don't fetch comments
+                }
             }
         }
 
@@ -322,40 +343,42 @@ class VideoModel:
                 "Cache-Control": "max-age=0",
             }
             
-            ydl_opts = {
-                'quiet': True,
+            # Use base configuration and enhance for subtitle extraction
+            ydl_opts = self.ydl_opts.copy()
+            ydl_opts.update({
                 'writesubtitles': True,
                 'writeautomaticsub': True,
                 'subtitleslangs': ['en', 'hi', 'en-US', 'en-GB'],
                 'subtitlesformat': 'best',
                 'skip_download': True,
-                'ignoreerrors': True,
-                'no_warnings': True,
-                'nocheckcertificate': True,
-                'cookiefile': 'cookies.txt',
                 'outtmpl': os.path.join(temp_dir, '%(id)s.%(ext)s'),
+                'sleep_interval_subtitles': 2,
+                # Override headers specifically for subtitle extraction
                 'http_headers': http_headers,
-                'socket_timeout': 30,
-                'retries': 5,
-                'fragment_retries': 5,
-                'extractor_retries': 3,
-                'sleep_interval': 1,
-                'max_sleep_interval': 5,
-                'sleep_interval_subtitles': 1,
-            }
+            })
             
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
-
-                subtitle_file_path = None
-                for ext in ['vtt', 'ttml', 'srt']:
-                    for lang_code in ['en', 'hi', 'en-US', 'en-GB']:
-                        potential_file = os.path.join(temp_dir, f"{video_id}.{lang_code}.{ext}")
-                        if os.path.exists(potential_file):
-                            subtitle_file_path = potential_file
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    # Try downloading subtitles with error handling
+                    try:
+                        ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
+                    except Exception as download_error:
+                        logger.warning(f"yt-dlp download had issues for {video_id}: {str(download_error)}")
+                        # Continue to check if any subtitles were still downloaded
+                    
+                    subtitle_file_path = None
+                    for ext in ['vtt', 'ttml', 'srt']:
+                        for lang_code in ['en', 'hi', 'en-US', 'en-GB']:
+                            potential_file = os.path.join(temp_dir, f"{video_id}.{lang_code}.{ext}")
+                            if os.path.exists(potential_file):
+                                subtitle_file_path = potential_file
+                                logger.info(f"Found subtitle file: {potential_file}")
+                                break
+                        if subtitle_file_path:
                             break
-                    if subtitle_file_path:
-                        break
+            except Exception as setup_error:
+                logger.error(f"Failed to set up yt-dlp for subtitle extraction: {str(setup_error)}")
+                raise VideoModelError(f"yt-dlp setup failed: {str(setup_error)}")
             
             if subtitle_file_path:
                 with open(subtitle_file_path, 'r', encoding='utf-8') as f:

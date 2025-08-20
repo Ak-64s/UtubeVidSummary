@@ -90,6 +90,23 @@
     --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.2);
 }
 
+/* Theme-specific code styling for better visibility */
+[data-theme="light"] .video-summary code {
+    background: linear-gradient(135deg, 
+        rgba(139, 92, 246, 0.15) 0%, 
+        rgba(6, 182, 212, 0.15) 100%);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    color: #5b21b6; /* Darker purple for better contrast in light mode */
+}
+
+[data-theme="dark"] .video-summary code {
+    background: linear-gradient(135deg, 
+        rgba(139, 92, 246, 0.12) 0%, 
+        rgba(6, 182, 212, 0.12) 100%);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: #a78bfa; /* Lighter purple for better contrast in dark mode */
+}
+
 /* === BASE STYLES === */
 * {
     margin: 0;
@@ -1968,7 +1985,7 @@ body {
 
 .video-summary h3 {
     font-size: 1.375rem;
-    color: var(--accent);
+    color: var(--primary);
     position: relative;
     padding-left: var(--space-xl);
 }
@@ -2095,24 +2112,26 @@ body {
 
 .video-summary em {
     font-style: italic;
-    color: var(--accent);
+    color: var(--primary);
+    font-weight: 500;
 }
 
 /* Modern Code Styling */
 .video-summary code {
     background: linear-gradient(135deg, 
-        rgba(139, 92, 246, 0.08) 0%, 
-        rgba(6, 182, 212, 0.08) 100%);
-    border: 1px solid rgba(139, 92, 246, 0.2);
+        rgba(139, 92, 246, 0.12) 0%, 
+        rgba(6, 182, 212, 0.12) 100%);
+    border: 1px solid rgba(139, 92, 246, 0.3);
     border-radius: var(--radius-sm);
     padding: var(--space-xs) var(--space-sm);
     font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--accent);
+    font-weight: 600;
+    color: var(--primary);
     font-variant-ligatures: common-ligatures;
     letter-spacing: 0.025em;
     position: relative;
+    box-shadow: var(--shadow-sm);
 }
 
 .video-summary code::before {
@@ -2123,9 +2142,22 @@ body {
     right: 0;
     bottom: 0;
     background: var(--gradient-primary);
-    opacity: 0.05;
+    opacity: 0.08;
     border-radius: inherit;
     pointer-events: none;
+}
+
+.video-summary code:hover {
+    background: linear-gradient(135deg, 
+        rgba(139, 92, 246, 0.18) 0%, 
+        rgba(6, 182, 212, 0.18) 100%);
+    border-color: rgba(139, 92, 246, 0.4);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.video-summary code:hover::before {
+    opacity: 0.12;
 }
 
 /* Modern Code Blocks */
