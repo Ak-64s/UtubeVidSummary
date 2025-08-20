@@ -2,14 +2,14 @@ from urllib.parse import urlparse, parse_qs
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound
 import google.generativeai as genai
-from ..config import config # Use the centralized config
+from ..config import config 
 import os
 from typing import List, Dict, Union, Optional, Any
 import re
 import logging
 import requests
 import yt_dlp
-from app.utils.cache_manager import cache_manager # For caching
+from app.utils.cache_manager import cache_manager 
 
 import time
 import random
@@ -35,7 +35,7 @@ class VideoModel:
         self._configure_gemini_api()
 
         self.cache_namespace_transcripts = "transcripts"
-        # Enhanced yt-dlp configuration to handle YouTube restrictions better
+        
         self.ydl_opts = {
             'quiet': True,
             'no_warnings': True,
