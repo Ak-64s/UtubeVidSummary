@@ -1311,17 +1311,8 @@ body {
     }
     
     /* Mobile result page adjustments */
-    .results-header {
-        padding: var(--space-xl) var(--space-md);
-        margin-bottom: var(--space-xl);
-    }
     
-    .results-icon {
-        width: 64px;
-        height: 64px;
-        font-size: 1.5rem;
-        margin-bottom: var(--space-lg);
-    }
+    /* Results icon removed */
     
     .results-stats {
         flex-direction: column;
@@ -1425,56 +1416,11 @@ body {
     padding: var(--space-xl);
 }
 
-/* Modern Results Header */
-.results-header {
-    text-align: center;
-    margin-bottom: var(--space-3xl);
-    position: relative;
-    background: linear-gradient(135deg, 
-        rgba(139, 92, 246, 0.03) 0%, 
-        rgba(6, 182, 212, 0.03) 100%);
-    border-radius: var(--radius-xl);
-    padding: var(--space-3xl) var(--space-xl);
-    border: 1px solid var(--border-primary);
-}
+/* Playlist Title Display */
 
-.header-content {
-    position: relative;
-    z-index: 1;
-}
+/* Header content removed */
 
-.results-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: var(--gradient-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    color: white;
-    margin: 0 auto var(--space-xl);
-    box-shadow: var(--shadow-lg);
-    animation: pulse 3s ease-in-out infinite;
-}
-
-.results-title {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: clamp(2.5rem, 5vw, 4rem);
-    font-weight: 700;
-    margin-bottom: var(--space-md);
-    line-height: 1.1;
-}
-
-.results-subtitle {
-    font-size: 1.125rem;
-    color: var(--text-secondary);
-    margin-bottom: var(--space-xl);
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    line-height: 1.6;
-}
+/* Results header elements removed */
 
 .results-stats {
     display: flex;
@@ -1613,19 +1559,7 @@ body {
         padding: var(--space-xl) var(--space-2xl);
     }
     
-    .results-title {
-        font-size: 4rem;
-    }
-    
-    .results-subtitle {
-        font-size: 1.25rem;
-    }
-    
-    .results-icon {
-        width: 96px;
-        height: 96px;
-        font-size: 2.5rem;
-    }
+    /* Results header elements removed */
     
     .results-stats {
         gap: var(--space-xl);
@@ -1636,9 +1570,7 @@ body {
         font-size: 1rem;
     }
     
-    .results-header {
-        padding: var(--space-3xl) var(--space-2xl);
-    }
+    /* Results header removed */
 }
 
 @media (min-width: 1600px) {
@@ -1648,17 +1580,7 @@ body {
     }
 }
 
-.results-header {
-    text-align: center;
-    margin-bottom: var(--space-2xl);
-}
-
-.results-header h1 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: var(--space-md);
-}
+/* Results header styles removed */
 
 .playlist-title {
     font-size: 1.125rem;
@@ -1899,38 +1821,7 @@ body {
     margin-bottom: var(--space-2xl);
 }
 
-.summary-header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    margin-bottom: var(--space-xl);
-    padding-bottom: var(--space-lg);
-    border-bottom: 2px solid var(--border-primary);
-}
-
-.summary-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--gradient-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-    flex-shrink: 0;
-}
-
-.summary-title {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0;
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
+/* Summary header removed - content flows directly */
 
 /* Enhanced Markdown Typography */
 .video-summary h1,

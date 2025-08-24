@@ -27,8 +27,11 @@ class Config:
     LOGGING_LEVEL = os.getenv("LOGGING_LEVEL", "INFO").upper()
     LOGGING_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
+    # Transcript settings
+    USE_YOUTUBE_TRANSCRIPT_API = os.getenv("USE_YOUTUBE_TRANSCRIPT_API", "false").lower() == "true"
+    
     # Summarization
-    DEFAULT_SUMMARY_PROMPT = """You are an expert academic assistant. Your task is to process the given text and convert it into high-quality notes. Follow these instructions:
+    DEFAULT_SUMMARY_PROMPT = """Process the given text and convert it into organized notes. Follow these instructions:
 
 Organize the information logically, breaking it down into clear, concise bullet points.
 
@@ -38,9 +41,9 @@ Ensure that no major idea or argument is missed. Cover all essential concepts, a
 
 Structure the output with Markdown formatting, using headings for sections and bold text to emphasize key terms or ideas.
 
-The goal is to create a complete, exam-ready summary that's easy to revisit and understand even after a long time.
+Provide the notes directly without any introductory text or preamble.
 
-Text to summarize:"""
+Text to process:"""
 
     @staticmethod
     def validate_api_keys():

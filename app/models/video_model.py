@@ -2,14 +2,14 @@ from urllib.parse import urlparse, parse_qs
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound
 import google.generativeai as genai
-from ..config import config # Use the centralized config
+from ..config import config 
 import os
 from typing import List, Dict, Union, Optional, Any
 import re
 import logging
 import requests
 import yt_dlp
-from app.utils.cache_manager import cache_manager # For caching
+from app.utils.cache_manager import cache_manager 
 
 import time
 import random
@@ -35,7 +35,7 @@ class VideoModel:
         self._configure_gemini_api()
 
         self.cache_namespace_transcripts = "transcripts"
-        # Enhanced yt-dlp configuration to handle YouTube restrictions better
+        
         self.ydl_opts = {
             'quiet': True,
             'no_warnings': True,
@@ -210,16 +210,22 @@ class VideoModel:
         
         # Fetch transcript if not cached
         if not transcript_data:
-            try:
-                transcript_data = self._retry_with_backoff(lambda: self._fetch_transcript_from_api(video_id))
-                if transcript_data:
-                    logger.info(f"Successfully fetched transcript for video {video_id} using YouTube Transcript API.")
-                else:
-                    logger.warning(f"YouTube Transcript API returned no data for video {video_id}. Falling back to yt-dlp.")
-            except Exception as e:
-                logger.warning(f"YouTube Transcript API failed for video {video_id}: {str(e)}. Falling back to yt-dlp.")
+            # Check if we should try YouTube Transcript API first or go directly to yt-dlp
+            if config.USE_YOUTUBE_TRANSCRIPT_API:
+                try:
+                    transcript_data = self._retry_with_backoff(lambda: self._fetch_transcript_from_api(video_id))
+                    if transcript_data:
+                        logger.info(f"Successfully fetched transcript for video {video_id} using YouTube Transcript API.")
+                    else:
+                        logger.warning(f"YouTube Transcript API returned no data for video {video_id}. Falling back to yt-dlp.")
+                except Exception as e:
+                    logger.warning(f"YouTube Transcript API failed for video {video_id}: {str(e)}. Falling back to yt-dlp.")
+                    transcript_data = None
+            else:
+                logger.info(f"Skipping YouTube Transcript API (disabled). Using yt-dlp directly for video {video_id}.")
                 transcript_data = None
 
+            # If no transcript data yet (either API disabled or failed), use yt-dlp
             if not transcript_data:
                 try:
                     transcript_data = self._retry_with_backoff(lambda: self._fetch_transcript_from_yt_dlp(video_id))

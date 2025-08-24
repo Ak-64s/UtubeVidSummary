@@ -7,7 +7,8 @@ const AppState = {
     currentTaskId: null,
     pollingInterval: null,
     pollCount: 0,
-    pollInterval: 1500,
+    pollInterval: 3000, // Start with more reasonable 3 seconds
+    pollErrorCount: 0,
     error: null,
     videoDuration: null,
     formData: {},
@@ -375,11 +376,11 @@ function adjustTime(input, secondsToAdd) {
 function startPolling(taskId) {
     AppState.currentTaskId = taskId;
     AppState.pollCount = 0;
-    AppState.pollInterval = 1500; // Start with 1.5 seconds
+    AppState.pollInterval = 3000; // Start with 3 seconds (more reasonable)
     sessionStorage.setItem('currentTaskPlaying', taskId);
     updateProgress(0, 'Task submitted, checking status...');
     
-    // Dynamic polling: faster initially, then slower
+    // Dynamic polling: start reasonable, then back off more aggressively
     scheduleNextPoll(taskId);
     checkTaskStatus(taskId); // Initial check
 }
@@ -388,14 +389,16 @@ function scheduleNextPoll(taskId) {
     AppState.pollingInterval = setTimeout(() => {
         checkTaskStatus(taskId);
         
-        // Adaptive polling intervals based on progress
+        // Aggressive backoff strategy to reduce server load
         AppState.pollCount++;
-        if (AppState.pollCount <= 5) {
-            AppState.pollInterval = 1500; // First 5 checks: 1.5s
+        if (AppState.pollCount <= 3) {
+            AppState.pollInterval = 3000; // First 3 checks: 3s (9 seconds total)
+        } else if (AppState.pollCount <= 8) {
+            AppState.pollInterval = 5000; // Next 5 checks: 5s (25 seconds)
         } else if (AppState.pollCount <= 15) {
-            AppState.pollInterval = 3000; // Next 10 checks: 3s
+            AppState.pollInterval = 8000; // Next 7 checks: 8s (56 seconds)
         } else {
-            AppState.pollInterval = 5000; // After that: 5s
+            AppState.pollInterval = 12000; // After that: 12s (much more reasonable)
         }
         
         scheduleNextPoll(taskId);
@@ -404,6 +407,7 @@ function scheduleNextPoll(taskId) {
 
 async function checkTaskStatus(taskId) {
     try {
+        console.log(`Polling attempt ${AppState.pollCount + 1}, interval: ${AppState.pollInterval}ms`);
         const response = await fetch(`/task_status/${taskId}`);
         if (!response.ok) throw new Error('Failed to fetch task status');
         
@@ -416,9 +420,20 @@ async function checkTaskStatus(taskId) {
         } else {
             updateTaskProgress(data);
             
-            // Extend polling interval if progress is > 80% (likely in final stages)
-            if (data.percentage >= 80 && AppState.pollCount > 10) {
-                AppState.pollInterval = Math.min(AppState.pollInterval * 1.2, 8000);
+            // Extend polling interval if progress is > 80% (likely in final AI processing stages)
+            if (data.progress_percentage >= 80 && AppState.pollCount > 8) {
+                AppState.pollInterval = Math.min(AppState.pollInterval * 1.5, 15000); // Cap at 15s
+            }
+            
+            // Exponential backoff for really long-running processes
+            if (AppState.pollCount > 20) {
+                AppState.pollInterval = Math.min(AppState.pollInterval * 1.2, 30000); // Cap at 30s for very long tasks
+            }
+            
+            // Emergency brake for extremely long tasks (>10 minutes of polling)
+            if (AppState.pollCount > 50) {
+                console.warn('Task taking unusually long, reducing polling frequency');
+                AppState.pollInterval = 60000; // 1 minute intervals
             }
         }
     } catch (error) {
@@ -462,8 +477,14 @@ function updateTaskProgress(data) {
         ? (data.completed_items / data.total_items) * 100 
         : 0;
     
-    const statusText = data.current_item_details || 
+    let statusText = data.current_item_details || 
         `Processing ${data.completed_items}/${data.total_items} items...`;
+    
+    // Add polling info for transparency (only after initial checks)
+    if (AppState.pollCount > 5) {
+        const nextCheckIn = Math.round(AppState.pollInterval / 1000);
+        statusText += ` • Next check in ${nextCheckIn}s`;
+    }
     
     updateProgress(percentage, statusText);
 }
@@ -807,10 +828,6 @@ function renderVideoSection(video) {
                 
                 <!-- Modern Summary Section -->
                 <div class="video-summary">
-                    <div class="summary-header">
-                        <div class="summary-icon">✨</div>
-                        <h3 class="summary-title">AI Summary</h3>
-                    </div>
                     ${summaryHTML}
                 </div>
                 
