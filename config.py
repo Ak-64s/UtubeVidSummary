@@ -1,18 +1,22 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env and .env.local files
 load_dotenv()
 load_dotenv(dotenv_path=".env.local")
 
 class Config:
     """Application configuration."""
-    # Flask settings
     SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
     if not SECRET_KEY:
-        raise ValueError("FLASK_SECRET_KEY environment variable is required but not set. Please set it to a secure random string.")
+        raise ValueError(
+            "FLASK_SECRET_KEY environment variable is required but not set. "
+            "Please set it to a secure random string."
+        )
+    
+    FLASK_DEBUG = os.getenv('FLASK_DEBUG', 'true').lower() == 'true'
+    FLASK_HOST = os.getenv('FLASK_HOST', '0.0.0.0')
+    FLASK_PORT = int(os.getenv('FLASK_PORT', '5000'))
 
-    # API Keys - Collect all provided keys into a list for rotation
     GEMINI_API_KEYS = [
         key for key in [
             os.getenv('GEMINI_API_KEY'),
@@ -23,14 +27,15 @@ class Config:
         ] if key
     ]
 
-    # Logging
     LOGGING_LEVEL = os.getenv("LOGGING_LEVEL", "INFO").upper()
     LOGGING_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
-    # Transcript settings
-    USE_YOUTUBE_TRANSCRIPT_API = os.getenv("USE_YOUTUBE_TRANSCRIPT_API", "false").lower() == "true"
+    USE_YOUTUBE_TRANSCRIPT_API = os.getenv("USE_YOUTUBE_TRANSCRIPT_API", "true").lower() == "true"
+    TRANSCRIPT_PREFERRED_LANGUAGES = [
+        lang.strip() for lang in os.getenv("TRANSCRIPT_LANGUAGES", "hi,en,en-US,en-GB").split(",") if lang.strip()
+    ]
+    TRANSCRIPT_SLICE_TTL_SECONDS = int(os.getenv("TRANSCRIPT_SLICE_TTL_SECONDS", "86400"))
     
-    # Summarization
     DEFAULT_SUMMARY_PROMPT = """Process the given text and convert it into organized notes. Follow these instructions:
 
 Organize the information logically, breaking it down into clear, concise bullet points.

@@ -1,11 +1,22 @@
-from typing import Dict, Optional, List, Any
+"""Progress tracking for background tasks."""
+from typing import Dict, Optional, Any
 from datetime import datetime
-import threading
-from app.utils.cache_manager import cache_manager # Use the global instance
+
+from utils.cache_manager import cache_manager
+from constants import (
+    CACHE_NAMESPACE_PROGRESS,
+    TASK_STATUS_PENDING,
+    TASK_STATUS_IN_PROGRESS,
+    TASK_STATUS_COMPLETED,
+    TASK_STATUS_FAILED,
+)
+
 
 class ProgressTracker:
+    """Tracks progress of background tasks using cache manager."""
+    
     def __init__(self):
-        self.namespace = "progress" # Define a namespace for progress data in cache
+        self.namespace = CACHE_NAMESPACE_PROGRESS
 
     def initialize_progress(self, task_id: str, total_items: int, description: str = "") -> None:
         """Initialize progress tracking for a task."""
@@ -14,8 +25,8 @@ class ProgressTracker:
             'description': description,
             'total_items': total_items,
             'completed_items': 0,
-            'current_item_details': '', # e.g., "Processing video 'Title X'"
-            'status': 'pending', # pending, in_progress, completed, failed
+            'current_item_details': '',  # e.g., "Processing video 'Title X'"
+            'status': TASK_STATUS_PENDING,
             'start_time': datetime.now().isoformat(),
             'last_update': datetime.now().isoformat(),
             'errors': [], # List of errors encountered
@@ -27,10 +38,9 @@ class ProgressTracker:
         """Update progress for a task."""
         progress_data = cache_manager.get_cached_data(self.namespace, task_id)
         if not progress_data:
-            # Or log a warning, task might not have been initialized
             return
 
-        progress_data['status'] = 'in_progress'
+        progress_data['status'] = TASK_STATUS_IN_PROGRESS
         progress_data['completed_items'] += completed_increment
         
         if current_item_details is not None:
@@ -44,11 +54,6 @@ class ProgressTracker:
                 'error': item_error,
                 'timestamp': datetime.now().isoformat()
             })
-
-        if progress_data['completed_items'] >= progress_data['total_items'] and progress_data['status'] != 'failed':
-            # If all items are done, but no overall result set yet, don't mark completed.
-            # The main task function should call mark_task_completed.
-            pass
             
         cache_manager.set_cached_data(self.namespace, task_id, progress_data)
 
@@ -59,7 +64,6 @@ class ProgressTracker:
     def _update_task_status(self, task_id: str, status: str, result: Optional[Any] = None, error_message: Optional[str] = None) -> None:
         progress_data = cache_manager.get_cached_data(self.namespace, task_id)
         if not progress_data:
-            # Fallback: if not initialized, create a minimal record
             progress_data = {
                 'task_id': task_id, 'status': status, 'last_update': datetime.now().isoformat(),
                 'errors': [], 'total_items': 0, 'completed_items': 0
@@ -82,15 +86,14 @@ class ProgressTracker:
 
     def mark_task_completed(self, task_id: str, result: Any) -> None:
         """Mark a task as completed and store its result."""
-        self._update_task_status(task_id, 'completed', result=result)
+        self._update_task_status(task_id, TASK_STATUS_COMPLETED, result=result)
 
     def mark_task_failed(self, task_id: str, error: str) -> None:
         """Mark a task as failed."""
-        self._update_task_status(task_id, 'failed', error_message=error)
+        self._update_task_status(task_id, TASK_STATUS_FAILED, error_message=error)
 
     def cleanup_progress(self, task_id: str) -> None:
         """Clean up progress data for a task."""
         cache_manager.delete_cached_data(self.namespace, task_id)
 
-# Global instance
 progress_tracker = ProgressTracker() 

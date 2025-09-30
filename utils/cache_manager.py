@@ -1,12 +1,21 @@
-import time
-from typing import Any, Dict, Optional
-import threading
-import redis
-import pickle
+"""
+Cache manager for handling data caching with Redis or in-memory fallback.
+"""
 import os
+import time
+import pickle
+from typing import Any, Optional
+
+import redis
+
+from constants import CACHE_TTL_DEFAULT
+
 
 class CacheManager:
-    def __init__(self, default_ttl: int = 3600): # Default TTL 1 hour
+    """Manages caching with Redis or in-memory fallback."""
+    
+    def __init__(self, default_ttl: int = CACHE_TTL_DEFAULT):
+        """Initialize cache manager with default TTL."""
         self.default_ttl = default_ttl
         redis_url = os.getenv('REDIS_URL')
         if redis_url:
@@ -73,5 +82,4 @@ class CacheManager:
             self._cache.clear()
             self._cache_expiry.clear()
 
-# Global instance (or inject it if preferred)
 cache_manager = CacheManager() 

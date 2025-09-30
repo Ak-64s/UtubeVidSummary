@@ -1,23 +1,34 @@
-from typing import Dict, Any
+"""Helper utilities for validation and data processing."""
 import re
+from typing import Dict, Any, Tuple
 
-def validate_form_data(data: Dict[str, Any]) -> tuple:
+from constants import (
+    MAX_CUSTOM_PROMPT_LENGTH,
+    MAX_FILENAME_LENGTH,
+    YOUTUBE_URL_PATTERN,
+    ERROR_NO_DATA_PROVIDED,
+    ERROR_NO_URL_PROVIDED,
+    ERROR_INVALID_TIMESTAMP,
+    ERROR_START_BEFORE_END,
+)
+
+
+def validate_form_data(data: Dict[str, Any]) -> Tuple[bool, str]:
     """Validates form data and returns (is_valid, error_message)."""
     if not data:
-        return False, "No data provided"
+        return False, ERROR_NO_DATA_PROVIDED
     
     url = data.get('link', '').strip()
     if not url:
-        return False, "Please provide a YouTube URL"
+        return False, ERROR_NO_URL_PROVIDED
     
     # Basic URL validation for YouTube
-    youtube_pattern = r'^https?://(www\.)?(youtube\.com|youtu\.be)/.+'
-    if not re.match(youtube_pattern, url):
+    if not re.match(YOUTUBE_URL_PATTERN, url):
         return False, "Please provide a valid YouTube URL (youtube.com or youtu.be)"
     
     custom_prompt = data.get('prompt', '').strip()
-    if custom_prompt and len(custom_prompt) > 2000:
-        return False, "Custom prompt is too long (max 2000 characters)"
+    if custom_prompt and len(custom_prompt) > MAX_CUSTOM_PROMPT_LENGTH:
+        return False, f"Custom prompt is too long (max {MAX_CUSTOM_PROMPT_LENGTH} characters)"
     
     # Validate timestamp format if provided
     start_time_str = data.get('start_time', '').strip()
@@ -37,15 +48,15 @@ def validate_form_data(data: Dict[str, Any]) -> tuple:
             start_seconds = _convert_time_to_seconds(start_time_str)
             end_seconds = _convert_time_to_seconds(end_time_str)
             if start_seconds >= end_seconds:
-                return False, "Start time must be before end time"
+                return False, ERROR_START_BEFORE_END
         except ValueError:
-            return False, "Invalid timestamp format"
+            return False, ERROR_INVALID_TIMESTAMP
     
     return True, ""
 
 def _is_valid_timestamp(timestamp: str) -> bool:
-    """Check if timestamp is in valid HH:MM:SS format."""
-    pattern = r'^([0-9]{1,2}):([0-5]?[0-9]):([0-5]?[0-9])$'
+    """Check if timestamp is in valid H+:MM:SS format with unlimited hours."""
+    pattern = r'^(\d+):([0-5]?[0-9]):([0-5]?[0-9])$'
     return bool(re.match(pattern, timestamp))
 
 def _convert_time_to_seconds(time_str: str) -> float:
@@ -69,20 +80,24 @@ def _convert_time_to_seconds(time_str: str) -> float:
     except (ValueError, AttributeError) as e:
         raise ValueError(f"Invalid timestamp format: {str(e)}")
 
+def convert_time_to_seconds(time_str: str) -> float:
+    """Public wrapper for converting HH:MM:SS to seconds.
+
+    Exposed for import by routes and other modules without relying on a
+    "private" function name. Raises ValueError on invalid input.
+    """
+    return _convert_time_to_seconds(time_str)
+
 def sanitize_filename(filename: str) -> str:
     """Sanitize filename by removing invalid characters."""
     if not filename:
         return "untitled"
     
-    # Remove invalid characters for file systems
     invalid_chars = '<>:"/\\|?*'
     sanitized = ''.join(c for c in filename if c not in invalid_chars)
-    
-    # Remove leading/trailing spaces and dots
     sanitized = sanitized.strip(' .')
     
-    # Limit length
-    if len(sanitized) > 100:
-        sanitized = sanitized[:100]
+    if len(sanitized) > MAX_FILENAME_LENGTH:
+        sanitized = sanitized[:MAX_FILENAME_LENGTH]
     
     return sanitized if sanitized else "untitled" 

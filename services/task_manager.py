@@ -1,11 +1,14 @@
+"""
+Background task runner for processing video tasks asynchronously.
+"""
 import logging
-import time
-from typing import Dict, Any, Optional
+from typing import Optional
 
-from app.controllers.video_controller import VideoController, VideoControllerError
-from app.utils.progress_tracker import progress_tracker
+from controllers.video_controller import VideoController, VideoControllerError
+from utils.progress_tracker import progress_tracker
 
 logger = logging.getLogger(__name__)
+
 
 def background_task_runner(
     task_id: str,
@@ -13,8 +16,17 @@ def background_task_runner(
     custom_prompt: Optional[str],
     start_time: Optional[float] = None,
     end_time: Optional[float] = None,
-):
-    """The actual function run by the thread to process a video or playlist."""
+) -> None:
+    """
+    The actual function run by the thread to process a video.
+    
+    Args:
+        task_id: Unique identifier for the task
+        url: YouTube video URL to process
+        custom_prompt: Optional custom prompt for summarization
+        start_time: Optional start time for video segment
+        end_time: Optional end time for video segment
+    """
     logger.info(f"Task {task_id}: Starting processing for URL: {url}")
     
     try:
@@ -25,7 +37,6 @@ def background_task_runner(
         return
 
     try:
-        # The controller will handle progress updates
         result = video_controller_instance.process_video_or_playlist(
             url,
             custom_prompt,
@@ -35,9 +46,7 @@ def background_task_runner(
             end_time=end_time,
         )
 
-        # Final status update based on controller's result
         if "error" in result and result["error"]:
-            # The controller should have already marked the task as failed via the progress tracker
             if progress_tracker.get_progress(task_id).get('status') != 'failed':
                  progress_tracker.mark_task_failed(task_id, result["error"])
         else:
