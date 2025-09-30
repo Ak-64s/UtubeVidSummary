@@ -36,14 +36,18 @@ class VideoModelError(Exception):
 class VideoModel:
     def __init__(self):
         if not config.GEMINI_API_KEYS:
-            raise VideoModelError(
+            logger.warning(
                 "No API keys found. Please set at least one of GOOGLE_API_KEY, GEMINI_API_KEY, "
                 "API_KEY, API_KEY1, or API_KEY2 in your environment."
             )
-        self.api_keys = config.GEMINI_API_KEYS
-        self.current_api_key_index = 0
-        self.model = None
-        self._configure_gemini_api()
+            self.api_keys = []
+            self.current_api_key_index = 0
+            self.model = None
+        else:
+            self.api_keys = config.GEMINI_API_KEYS
+            self.current_api_key_index = 0
+            self.model = None
+            self._configure_gemini_api()
 
         self.cache_namespace_transcripts = CACHE_NAMESPACE_TRANSCRIPTS
         self.preferred_languages: List[str] = list(dict.fromkeys(

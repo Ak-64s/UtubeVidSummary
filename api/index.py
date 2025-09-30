@@ -1,0 +1,13 @@
+"""
+Vercel serverless function entry point.
+"""
+import sys
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+from app import app
+
+def handler(request, response):
+    """Vercel serverless function handler."""
+    return app(request, response)

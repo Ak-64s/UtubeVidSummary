@@ -1,3 +1,4 @@
+
 """
 Main application entry point for the Flask YouTube video summarization app.
 """
@@ -101,7 +102,15 @@ def validate_app_readiness(app: Flask) -> None:
         )
 
 
-app = create_app()
+try:
+    app = create_app()
+except Exception as e:
+    logger.error(f"Failed to create app: {e}")
+    app = Flask(__name__)
+    
+    @app.route('/')
+    def error():
+        return f"Application failed to initialize: {str(e)}", 500
 
 
 def main() -> None:

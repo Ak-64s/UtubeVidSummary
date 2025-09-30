@@ -6,11 +6,12 @@ load_dotenv(dotenv_path=".env.local")
 
 class Config:
     """Application configuration."""
-    SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
-    if not SECRET_KEY:
-        raise ValueError(
-            "FLASK_SECRET_KEY environment variable is required but not set. "
-            "Please set it to a secure random string."
+    SECRET_KEY = os.getenv("FLASK_SECRET_KEY", "dev-secret-key-change-in-production")
+    if SECRET_KEY == "dev-secret-key-change-in-production":
+        import warnings
+        warnings.warn(
+            "Using default SECRET_KEY. Set FLASK_SECRET_KEY environment variable in production!",
+            RuntimeWarning
         )
     
     FLASK_DEBUG = os.getenv('FLASK_DEBUG', 'true').lower() == 'true'
