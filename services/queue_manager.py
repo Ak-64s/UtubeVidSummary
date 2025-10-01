@@ -6,7 +6,12 @@ import os
 import threading
 import logging
 from typing import Any, Callable
-import rq
+try:
+    import rq  # type: ignore
+    _rq_available = True
+except ImportError:
+    rq = None  # type: ignore
+    _rq_available = False
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +46,14 @@ def create_queue() -> Any:
     """
     use_redis = os.getenv('USE_REDIS', 'false').lower() == 'true'
     
+    if use_redis:
+        if not _rq_available:
+            logger.warning(
+                "USE_REDIS is enabled but the 'rq' package is not installed. "
+                "Falling back to synchronous execution. Add 'rq' to requirements if Redis queues are required."
+            )
+            use_redis = False
+
     if use_redis:
         try:
             import redis
